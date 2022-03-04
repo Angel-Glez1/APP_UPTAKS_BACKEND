@@ -1,12 +1,19 @@
-const express = require('express');
+import dotenv from 'dotenv';
+import Server from './models/Server.js'
 
-const app = express();
+// Configurar varibles de entorno
+dotenv.config();
+
+// Iniciar servidor
+const server = new Server();
+server.listen();
 
 
-app.get('/', (req, res) => {
-
-    res.json({ ok: true, msg: 'Hola' });
-})
 
 
-app.listen(9000, () => console.log('Aplicacion corriendo en el puerto 9000'));
+
+
+
+
+
+
