@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import conectarDB from '../config/database.js';
-import { Auth, User } from '../routers/index.js';
+import { Auth, Proyecto, User, Tareas } from '../routers/index.js';
 
 
 
@@ -19,6 +19,8 @@ class Server {
         this.path = {
             auth: '/api/auth',
             user: '/api/user',
+            proyecto: '/api/proyecto',
+            tareas: '/api/tareas'
         }
 
         // Funciones
@@ -29,7 +31,9 @@ class Server {
 
     router() {
         this.app.use(this.path.auth, Auth);
+        this.app.use(this.path.proyecto, Proyecto);
         this.app.use(this.path.user, User);
+        this.app.use(this.path.tareas, Tareas);
     }
 
 
