@@ -16,6 +16,7 @@ class Server {
         this.dominiosPermtidos = [
             'http://localhost:3000'
         ];
+
         this.path = {
             auth: '/api/auth',
             user: '/api/user',
@@ -65,9 +66,11 @@ class Server {
 
         const corsOptions = {
             origin: function (origin, callback) {
-                if (this.dominiosPermtidos.indexOf(origin) !== -1) {
+                if (this.dominiosPermtidos.includes(origin)) {
+
                     // El origen de la request es permitido
                     callback(null, true);
+                    
                 } else {
                     callback(new Error('Request bloqueda por cors'));
                 }

@@ -1,4 +1,5 @@
 import { response, request } from "express";
+import { emailRegistro } from "../../helpers/emails.js";
 import generarID from "../../helpers/generarID.js";
 import generarJWT from "../../helpers/generar_JWT.js";
 import { Usuario } from '../../models/index.js'
@@ -21,9 +22,15 @@ const registar = async (req = request, res = response) => {
 
 
         const usuario = new Usuario({ nombre, password, email, token: generarID() });
-        const usuarioDB = await usuario.save();
+        await usuario.save();
 
-        res.json(usuarioDB);
+        await emailRegistro({
+            email: usuario.email,
+            nombre: usuario.nombre,
+            token: usuario.token
+        });
+
+        res.json({ msg: 'Usuario creado, revisa tu email para confirmar tu cuenta' });
 
     } catch (error) {
 

@@ -9,6 +9,7 @@ import {
     agregarColaborador,
     eliminarColaborador,
     obtenerTareas,
+    buscarColaborador,
 } from '../controllers/proyectoController.js';
 
 
@@ -31,8 +32,11 @@ router.route('/:id')
 
 
 router.get('/tareas', obtenerTareas);
-router.post('/agregar-colaborador', agregarColaborador);
-router.post('/eliminar-colaborador/:id', eliminarColaborador);
+
+
+router.post('/colaboradoresSearch', buscarColaborador );
+router.post('/colaboradores-eliminar/:id', eliminarColaborador);
+router.post('/colaboradores/:id', agregarColaborador);
 
 
 

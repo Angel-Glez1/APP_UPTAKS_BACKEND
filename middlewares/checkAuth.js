@@ -15,7 +15,7 @@ const checkAuth = async (req, res, next) => {
     token = authorization.split(' ')[1];
     if (!token) {
         const e = new Error('Token invalido');
-        return res.status(401).msg({ msg: e.message });
+        return res.status(401).json({ msg: e.message });
     }
 
     try {

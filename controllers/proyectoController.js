@@ -1,5 +1,5 @@
 import { request, response } from 'express';
-import { Proyecto, Tarea } from '../models/index.js';
+import { Proyecto, Tarea, Usuario } from '../models/index.js';
 
 
 
@@ -9,7 +9,7 @@ const obtenerProyectos = async (req = request, res = response) => {
 
     try {
 
-        const proyectos = await Proyecto.find({ creador: _id });
+        const proyectos = await Proyecto.find({ creador: _id }).select('-tareas');
         return res.json(proyectos);
 
     } catch (error) {
@@ -48,7 +48,10 @@ const obtenerProyecto = async (req = request, res = response) => {
 
     try {
 
-        const proyecto = await Proyecto.findById(id);
+        const proyecto = await Proyecto.findById(id)
+            .populate('tareas')
+            .populate('colaboradores', 'nombre email _id');
+
 
         if (!proyecto) {
             const e = new Error('Recurso no encontrado');
@@ -63,14 +66,7 @@ const obtenerProyecto = async (req = request, res = response) => {
         }
 
 
-        // Obtener la tareas del proyecto
-        const tareas = await Tarea.find().where('proyecto').equals(proyecto._id);
-
-
-        return res.json({
-            proyecto,
-            tareas
-        });
+        return res.json(proyecto);
 
     } catch (error) {
 
@@ -147,14 +143,97 @@ const eliminarProyecto = async (req = request, res = response) => {
 
 }
 
-const agregarColaborador = async (req = request, res = response) => { }
+const buscarColaborador = async (req = request, res = response) => {
 
-const eliminarColaborador = async (req = request, res = response) => { }
+    const { email } = req.body;
+
+    const usuario = await Usuario.findOne({ email }).select('nombre _id email');
+
+    if (!usuario) {
+        res.status(404).json({ msg: 'Usuario no encontrado' });
+        return;
+    }
+
+    res.json(usuario);
+
+}
+
+const agregarColaborador = async (req = request, res = response) => {
+
+    const { params, body, usuario } = req;
+    const { email } = body;
+
+    // Validar que el proyecto exita  
+    const proyecto = await Proyecto.findById(params.id);
+    if (!proyecto) {
+        res.status(404).json({ msg: 'Proyecto no encontrado' });
+        return;
+    }
+
+    // Validar que sea el creador el que esta agregando un colaborador
+    if (usuario._id.toString() !== proyecto.creador.toString()) {
+        res.status(403).json({ msg: 'Accion no valida' });
+        return;
+    }
+
+
+    // Validar que exita el colaborador que se desea agregar.
+    const user = await Usuario.findOne({ email }).select('nombre _id email');
+    if (!user) {
+        res.status(404).json({ msg: 'Usuario no encontrado' });
+        return;
+    }
+
+    // Validar que no sea el creador al que se queire agregar.
+    if (proyecto.creador.toString() === user._id.toString()) {
+        res.status(404).json({ msg: 'El creador del proyecto no puede ser colaborador.' });
+        return;
+    }
+
+
+    // Validar si el colaborador ya exite en el proyecto
+    if (proyecto.colaboradores.includes(user._id)) {
+        res.status(404).json({ msg: 'El usuario ya pertenece al proyecto como colaborador.' });
+        return;
+    }
+
+    proyecto.colaboradores.push(user._id);
+    await proyecto.save();
+
+    res.json({ msg: 'Nuevo Colaborador agregado con exito.' });
+
+}
+
+const eliminarColaborador = async (req = request, res = response) => {
+
+    const { params, body, usuario } = req;
+
+
+    // Validar que el proyecto exita  
+    const proyecto = await Proyecto.findById(params.id);
+    if (!proyecto) {
+        res.status(404).json({ msg: 'Proyecto no encontrado' });
+        return;
+    }
+
+    // Validar que sea el creador el que esta agregando un colaborador
+    if (usuario._id.toString() !== proyecto.creador.toString()) {
+        res.status(403).json({ msg: 'Accion no valida' });
+        return;
+    }
+
+    proyecto.colaboradores.pull(body.id);
+    await proyecto.save();
+
+    res.json({ msg: 'Colaborador eliminado' });
+
+}
 
 const obtenerTareas = async (req = request, res = response) => { }
 
 
 export {
+    buscarColaborador,
     obtenerProyectos,
     nuevoProyecto,
     obtenerProyecto,

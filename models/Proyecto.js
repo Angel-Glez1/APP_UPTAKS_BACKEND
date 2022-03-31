@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import mogoose from 'mongoose'
 
 
@@ -26,6 +27,12 @@ const proyectoSchema = mogoose.Schema({
         type: mogoose.Schema.Types.ObjectId,
         ref: "Usuario"
     },
+    tareas: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Tarea'
+        }
+    ], 
     colaboradores: [
         {
             type: mogoose.Schema.Types.ObjectId,

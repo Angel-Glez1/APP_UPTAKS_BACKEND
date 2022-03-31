@@ -1,4 +1,5 @@
 import { request, response } from 'express';
+import { emailOlvidePassword } from '../../helpers/emails.js';
 import generarID from '../../helpers/generarID.js';
 import { Usuario } from '../../models/index.js';
 
@@ -18,6 +19,13 @@ const olvidePassword = async (req = request, res = response) => {
 
         usuario.token = generarID();
         await usuario.save();
+
+        await emailOlvidePassword({
+            nombre: usuario.nombre,
+            token: usuario.token,
+            email: usuario.email
+        });
+
         res.json({ msg: 'Hemos mandado un email con las instrucciones' });
 
     } catch (error) {
