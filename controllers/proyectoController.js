@@ -5,14 +5,19 @@ import { Proyecto, Tarea, Usuario } from '../models/index.js';
 
 const obtenerProyectos = async (req = request, res = response) => {
 
-    const { _id } = req.usuario;
-
     try {
 
-        const proyectos = await Proyecto.find({ creador: _id }).select('-tareas');
+        const proyectos = await Proyecto.find({
+            $or: [
+                { colaboradores: { $in: req.usuario._id } },
+                { creador: { $in: req.usuario._id } }
+            ]
+        }).select('-tareas');
+
         return res.json(proyectos);
 
     } catch (error) {
+
         console.log(error);
         return res.status(500).json({ msg: 'Error 500! Hubeo un problema al obtener los proyectos' });
     }
@@ -49,7 +54,9 @@ const obtenerProyecto = async (req = request, res = response) => {
     try {
 
         const proyecto = await Proyecto.findById(id)
-            .populate('tareas')
+            .populate({
+                path: 'tareas', populate: {path: 'completo', select: 'nombre'}
+            })
             .populate('colaboradores', 'nombre email _id');
 
 
@@ -58,10 +65,13 @@ const obtenerProyecto = async (req = request, res = response) => {
             return res.status(404).json({ msg: e.message });
         }
 
-
-        if (proyecto.creador.toString() !== req.usuario._id.toString()) {
-
-            const e = new Error('Accion no valida');
+        // Validar que el proyecto le pertenesca al creador o un colaborador
+        if (
+            proyecto.creador.toString() !== req.usuario._id.toString()
+            &&
+            !proyecto.colaboradores.some(colaborador => colaborador._id.toString() === req.usuario._id.toString())
+        ) {
+            const e = new Error('Accion no valida...');
             return res.status(401).json({ msg: e.message });
         }
 

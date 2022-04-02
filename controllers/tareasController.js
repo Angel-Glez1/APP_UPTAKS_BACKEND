@@ -130,7 +130,9 @@ const eliminarTarea = async (req = request, res = response) => {
 
     try {
 
-        await tarea.deleteOne();
+        const proyecto = await Proyecto.findById(tarea.proyecto);
+        await Promise.allSettled([await proyecto.tareas.pull(tarea._id), await tarea.deleteOne()]);
+
         res.json({ msg: 'Tarea eliminada' });
 
     } catch (error) {
@@ -138,7 +140,35 @@ const eliminarTarea = async (req = request, res = response) => {
     }
 }
 
-const cambiarEstado = async (req = request, res = response) => { }
+const cambiarEstado = async (req = request, res = response) => {
+
+    const { id } = req.params;
+
+    const tarea = await Tarea.findById(id).populate('proyecto');
+    if (!tarea) {
+        const e = new Error('No exite Proyecto');
+        return res.status(404).json({ msg: e.message });
+    }
+
+    // Validar que el proyecto le pertenesca al creador o un colaborador
+    if (
+        tarea.proyecto.creador.toString() !== req.usuario._id.toString()
+        &&
+        !tarea.proyecto.colaboradores.some(colaborador => colaborador._id.toString() === req.usuario._id.toString())
+    ) {
+        const e = new Error('Accion no valida...');
+        return res.status(401).json({ msg: e.message });
+    }
+
+
+    tarea.estado = !tarea.estado;
+    tarea.completo = req.usuario._id
+    await tarea.save();
+
+    const tareaAlmacenada = await Tarea.findById(id).populate('proyecto').populate('completo', 'nombre');
+
+    res.json(tareaAlmacenada);
+}
 
 export {
     agregarTarea,
