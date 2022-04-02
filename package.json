@@ -4,7 +4,7 @@
   "description": "aplicacion mern",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "type": "module",
   "author": "Angel Armando",
