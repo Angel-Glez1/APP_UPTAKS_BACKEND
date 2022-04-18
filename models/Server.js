@@ -25,7 +25,8 @@ class _Server {
 
         // Config Server...
         this.dominiosPermtidos = [
-            'http://localhost:3000'
+            'http://localhost:3000',
+            'https://uptaks-glez.netlify.app'
         ];
 
         this.path = {
@@ -87,8 +88,8 @@ class _Server {
 
     middleware() {
 
-        // this.app.use(cors(this.configCors()));
-        this.app.use(cors());
+        this.app.use(cors(this.configCors()));
+        // this.app.use(cors());
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
 
