@@ -19,7 +19,7 @@ class _Server {
         this.oi = new Server(this.server, {
             pingTimeout: 60000,
             cors: {
-                origin: process.env.FRONTEND_URL
+                origin: 'https://uptaks-glez.netlify.app'
             }
         })
 
